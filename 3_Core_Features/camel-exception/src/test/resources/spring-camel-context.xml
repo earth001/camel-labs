@@ -1,27 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xsi:schemaLocation="
-        http://www.springframework.org/schema/beans
-  		http://www.springframework.org/schema/beans/spring-beans.xsd
-  	    http://camel.apache.org/schema/spring
-		http://camel.apache.org/schema/spring/camel-spring.xsd">
-
-    <bean id="myBeanError" class="com.redhat.gpte.training.camel.MyBean"/>
-    <bean id="myBeanErrorException" class="com.redhat.gpte.training.camel.MyBean"/>
-
-    <camelContext xmlns="http://camel.apache.org/schema/spring">
-
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="         http://www.springframework.org/schema/beans     http://www.springframework.org/schema/beans/spring-beans.xsd        http://camel.apache.org/schema/spring   http://camel.apache.org/schema/spring/camel-spring.xsd">
+    <bean class="com.redhat.gpte.training.camel.MyBean" id="myBeanError"/>
+    <bean class="com.redhat.gpte.training.camel.MyBean" id="myBeanErrorException"/>
+    <camelContext id="camelContext-cec02e39-fe31-4ba8-9066-e5ab58b4241f" xmlns="http://camel.apache.org/schema/spring">
         <packageScan>
             <package>com.redhat.gpte.training.camel</package>
         </packageScan>
-
-        <endpoint id="sourceDirectoryXml"              uri="file:./target/test-classes/camel/in/xml"/>
-        <endpoint id="moneyUriXml"                     uri="file:./target/test-classes/camel/out/xml/?fileExist=Append&amp;fileName=money-${date:now:yyyyMMdd}.xml"/>
+        <endpoint id="sourceDirectoryXml" uri="file:./target/test-classes/camel/in/xml"/>
+        <endpoint id="moneyUriXml" uri="file:./target/test-classes/camel/out/xml/?fileExist=Append&amp;fileName=money-${date:now:yyyyMMdd}.xml"/>
         <endpoint id="directErrorHandlerWithException" uri="direct://errorHandlerWithException"/>
-        <endpoint id="directErrorHandler"              uri="direct://errorHandler"/>
-        <endpoint id="directDLQError"                  uri="direct://directDLQError"/>
-
+        <endpoint id="directErrorHandler" uri="direct://errorHandler"/>
+        <endpoint id="directDLQError" uri="direct://directDLQError"/>
     </camelContext>
-
 </beans>
