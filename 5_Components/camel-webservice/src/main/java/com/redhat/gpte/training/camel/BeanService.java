@@ -10,72 +10,73 @@ import org.apache.camel.Body;
 import org.apache.camel.Exchange;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-/*
+
 import com.redhat.gpte.training.Customer;
 import com.redhat.gpte.training.CustomerType;
 import com.redhat.gpte.training.GetAllCustomersResponse;
 import com.redhat.gpte.training.GetCustomerByName;
 import com.redhat.gpte.training.GetCustomerByNameResponse;
 import com.redhat.gpte.training.SaveCustomer;
-*/
+
 public class BeanService {
-/*
-    private static Logger log = LoggerFactory.getLogger(BeanService.class);
-    static List<Customer> customers = new ArrayList<Customer>();
-    Random randomGenerator = new Random();
 
-    public void generateCustomer() {
-        Customer customer = new Customer();
-        customer.setName("redhat");
-        customer.setNumOrders(randomGenerator.nextInt(100));
-        customer.setRevenue(randomGenerator.nextInt(10000));
-        customer.setType(CustomerType.BUSINESS);
-        customer.setTest(BigDecimal.valueOf(100.00));
-        customer.getAddress().add("FuseSource Office");
-        customers.add(customer);
+  private static Logger log = LoggerFactory.getLogger(BeanService.class);
+  static List<Customer> customers = new ArrayList<Customer>();
+  Random randomGenerator = new Random();
+
+  public void generateCustomer() {
+    Customer customer = new Customer();
+    customer.setName("redhat");
+    customer.setNumOrders(randomGenerator.nextInt(100));
+    customer.setRevenue(randomGenerator.nextInt(10000));
+    customer.setType(CustomerType.BUSINESS);
+    customer.setTest(BigDecimal.valueOf(100.00));
+    customer.getAddress().add("FuseSource Office");
+    customers.add(customer);
+  }
+
+  public GetAllCustomersResponse getCustomers(@Body String name) {
+    GetAllCustomersResponse response = new GetAllCustomersResponse();
+    response.getReturn().addAll(customers);
+    return response;
+  }
+
+  public GetCustomerByNameResponse getCustomerByName(@Body GetCustomerByName cSearched) {
+    List<Customer> result = new ArrayList<Customer>();
+    // Search for Customer using name as key
+    for (Customer c : customers) {
+      if (c.getName().equals(cSearched.getName())) {
+        result.add(c);
+        log.info(">> Customer find !");
+        break;
+      }
     }
 
-    public GetAllCustomersResponse getCustomers(@Body String name) {
-        GetAllCustomersResponse response = new GetAllCustomersResponse();
-        response.getReturn().addAll(customers);
-        return response;
-    }
+    GetCustomerByNameResponse response = new GetCustomerByNameResponse();
+    response.getReturn().addAll(result);
 
-    public GetCustomerByNameResponse getCustomerByName(@Body GetCustomerByName cSearched) {
-        List<Customer> result = new ArrayList<Customer>();
-        // Search for Customer using name as key
-        for(Customer c : customers) {
-            if (c.getName().equals(cSearched.getName())) {
-               result.add(c);
-               log.info(">> Customer find !");
-               break;
-            }
-        }
+    return response;
+  }
 
-        GetCustomerByNameResponse response = new GetCustomerByNameResponse();
-        response.getReturn().addAll(result);
+  public Customer saveCustomer(@Body SaveCustomer c) {
+    String address =
+        (c.getCustomer().getAddress().get(0) != null) ? c.getCustomer().getAddress().get(0)
+            : "Unknown address";
+    XMLGregorianCalendar birthDate = c.getCustomer().getBirthDate();
 
-        return response;
-    }
+    // enrich the customer received from backend data
+    Customer customer = new Customer();
+    customer.setName(c.getCustomer().getName());
+    customer.getAddress().add(address);
+    customer.setBirthDate(birthDate);
+    customer.setNumOrders(randomGenerator.nextInt(100));
+    customer.setRevenue(randomGenerator.nextInt(10000));
+    customer.setType(CustomerType.PRIVATE);
+    customer.setTest(BigDecimal.valueOf(100.00));
+    customers.add(customer);
 
-    public Customer saveCustomer(@Body SaveCustomer c) {
-        String address = (c.getCustomer().getAddress().get(0) != null) ?  c.getCustomer().getAddress().get(0) : "Unknown address";
-        XMLGregorianCalendar birthDate = c.getCustomer().getBirthDate();
+    log.info(">> Customer created and added in the array.");
 
-        // enrich the customer received from backend data
-        Customer customer = new Customer();
-        customer.setName(c.getCustomer().getName());
-        customer.getAddress().add(address);
-        customer.setBirthDate(birthDate);
-        customer.setNumOrders(randomGenerator.nextInt(100));
-        customer.setRevenue(randomGenerator.nextInt(10000));
-        customer.setType(CustomerType.PRIVATE);
-        customer.setTest(BigDecimal.valueOf(100.00));
-        customers.add(customer);
-
-        log.info(">> Customer created and added in the array.");
-
-        return customer;
-    }
-*/
+    return customer;
+  }
 }

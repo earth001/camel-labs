@@ -1,20 +1,40 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xmlns:cxf="http://camel.apache.org/schema/cxf"
-       xsi:schemaLocation="
-       http://www.springframework.org/schema/beans
-  		   http://www.springframework.org/schema/beans/spring-beans.xsd
-  		 http://camel.apache.org/schema/spring
-		     http://camel.apache.org/schema/spring/camel-spring.xsd
-		   http://camel.apache.org/schema/cxf
-		     http://camel.apache.org/schema/cxf/camel-cxf.xsd">
-
-    <cxf:cxfEndpoint/>
-
-    <bean id="beanService" class="com.redhat.gpte.training.camel.BeanService" init-method="generateCustomer"/>
-
-    <camelContext trace="false" xmlns="http://camel.apache.org/schema/spring">
+    xmlns:cxf="http://camel.apache.org/schema/cxf"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd http://camel.apache.org/schema/cxf http://camel.apache.org/schema/cxf/camel-cxf.xsd">
+    <bean class="com.redhat.gpte.training.camel.BeanService"
+        id="beanService" init-method="generateCustomer"/>
+    <camelContext id="camelContext-728b01af-6c5b-4d1a-9ef9-786e440e903b"
+        trace="false" xmlns="http://camel.apache.org/schema/spring">
+        <dataFormats>
+            <soapjaxb contextPath="com.redhat.gpte.training" id="soapFormat"/>
+        </dataFormats>
+        <route id="cxf-to-queue">
+            <from id="_from1" uri="cxf:bean:WS?dataFormat=MESSAGE&amp;loggingFeatureEnabled=true"/>
+            <setExchangePattern id="_setExchangePattern1" pattern="InOut"/>
+            <convertBodyTo id="_convertBodyTo1" type="String"/>
+            <log id="_log1" message="SOAP message received : ${body} and operation type : ${in.header.SOAPAction}"/>
+            <unmarshal id="_unmarshal1" ref="soapFormat"/>
+            <choice id="_choice1">
+                <when id="_when1">
+                    <simple>${in.header.SOAPAction} contains 'saveCustomer'</simple>
+                    <bean id="_bean1" method="saveCustomer" ref="beanService"/>
+                    <marshal id="_marshal1" ref="soapFormat"/>
+                </when>
+                <when id="_when2">
+                    <simple>${in.header.SOAPAction} contains 'getCustomerByName'</simple>
+                    <bean id="_bean2" method="getCustomerByName" ref="beanService"/>
+                    <marshal id="_marshal2" ref="soapFormat"/>
+                </when>
+                <when id="_when3">
+                    <simple>${in.header.SOAPAction} contains 'getAllCustomers'</simple>
+                    <bean id="_bean3" method="getCustomers" ref="beanService"/>
+                    <marshal id="_marshal3" ref="soapFormat"/>
+                </when>
+            </choice>
+            <log id="_log2" message="SOAP message returned : ${body}"/>
+        </route>
     </camelContext>
-
+    <cxf:cxfEndpoint address="http://0.0.0.0:9090/training/WebService"
+        id="WS" serviceClass="com.redhat.gpte.training.CustomerService"/>
 </beans>
