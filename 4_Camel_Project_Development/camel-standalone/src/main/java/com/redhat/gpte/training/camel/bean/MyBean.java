@@ -4,8 +4,8 @@ import org.apache.camel.Body;
 
 public class MyBean {
 
-/*    public String sayHello(@Body String to) {
-        return "Hello : " + to;
-    } */
+	public String sayHello(@Body String to) {
+		return String.format("Hello : %s", to);
+	}
 
 }
