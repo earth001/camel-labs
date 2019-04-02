@@ -1,38 +1,83 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xmlns:context="http://www.springframework.org/schema/context"
-       xsi:schemaLocation="
-       http://www.springframework.org/schema/beans
-  		  http://www.springframework.org/schema/beans/spring-beans.xsd
-  	   http://www.springframework.org/schema/context
-          http://www.springframework.org/schema/context/spring-context.xsd
-  		 http://camel.apache.org/schema/spring
-		     http://camel.apache.org/schema/spring/camel-spring.xsd">
 
-    <context:property-placeholder location="classpath:marvel.properties"/>
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="        http://www.springframework.org/schema/beans       http://www.springframework.org/schema/beans/spring-beans.xsd       http://www.springframework.org/schema/context           http://www.springframework.org/schema/context/spring-context.xsd      http://camel.apache.org/schema/spring        http://camel.apache.org/schema/spring/camel-spring.xsd">
 
-    <bean id="marvelUtil" class="com.redhat.gpte.training.camel.MarvelUtil">
-        <property name="apiKey" value="${apiKey}"/>
-        <property name="privateKey" value="${privateKey}"/>
-    </bean>
 
-    <camelContext trace="false" xmlns="http://camel.apache.org/schema/spring">
-        <propertyPlaceholder id="marvel" location="classpath:marvel.properties"/>
 
-        <!-- Dataformat -->
 
-        <!-- From File to direct:call-marvel -->
-        <route id="call-marvel">
-            <from uri=""/>
-            <to uri=""/>
-        </route>
 
-        <!-- Call Marvel REST API -->
-        <route id="http-marvel">
-            <from uri=""/>
-            <to uri=""/>
-        </route>
 
-    </camelContext>
+
+	<context:property-placeholder
+		location="classpath:marvel.properties" />
+
+	<bean class="com.redhat.gpte.training.camel.MarvelUtil"
+		id="marvelUtil">
+		<property name="apiKey" value="${apiKey}" />
+		<property name="privateKey" value="${privateKey}" />
+	</bean>
+	<camelContext
+		id="camelContext-ff1e74d5-fb44-4056-950a-df20272bf120" trace="false"
+		xmlns="http://camel.apache.org/schema/spring">
+		<propertyPlaceholder id="marvel"
+			location="classpath:marvel.properties" />
+		<!-- Dataformat -->
+		<dataFormats>
+			<json id="json-marvel" library="Jackson"
+				unmarshalTypeName="com.redhat.gpte.training.camel.model.Record" />
+		</dataFormats>
+		<!-- From File to direct:call-marvel -->
+		<route id="call-marvel">
+			<from id="_to3" uri="file://src/main/data?noop=true" />
+			<split id="_split1">
+				<tokenize token="," />
+				<!-- Define TimeStamp & Hash required by Marvel API -->
+				<setHeader headerName="hash" id="_setHeader1">
+					<method method="hash" ref="marvelUtil" />
+				</setHeader>
+				<setHeader headerName="ts" id="_setHeader2">
+					<method method="getTs" ref="marvelUtil" />
+				</setHeader>
+				<setHeader headerName="marvelID" id="_setHeader3">
+					<simple>${body}</simple>
+				</setHeader>
+
+				<!-- Set HTTP Query with Parameters -->
+				<setHeader headerName="CamelHttpQuery" id="_setHeader4">
+					<simple>hash=${header.hash}&amp;apikey=${properties:apiKey}&amp;ts=${header.ts}</simple>
+				</setHeader>
+				<!-- Set HTTP URI -->
+				<setHeader headerName="CamelHttpUri" id="_setHeader5">
+					<simple>http://gateway.marvel.com/v1/public/characters/${body}</simple>
+				</setHeader>
+				<!-- Set HTTP Method -->
+				<setHeader headerName="CamelHttpMethod" id="_setHeader6">
+					<constant>GET</constant>
+				</setHeader>
+				<!-- <log message=">> HTTP Query : ${header.CamelHttpQuery}"/> <log message=">> 
+					HTTP Query : ${header.CamelHttpUri}"/> -->
+				<to id="_to1" uri="direct:call-marvel" />
+			</split>
+		</route>
+		<!-- Call Marvel REST API -->
+		<route streamCache="true" id="http-marvel">
+			<from id="_from2" uri="direct:call-marvel" />
+			<to id="_to2" uri="http://gateway.marvel.com/" />
+			<unmarshal id="_unmarshal1" ref="json-marvel" />
+			<log id="_log1"
+				message="* * * RECORD - ${header.CamelSplitIndex} * * *" />
+			<log id="_log2" message="ID : ${header.marvelID}" />
+			<log id="_log3" message="Name : ${body.data.results[0].name}" />
+			<log id="_log4"
+				message="Description : ${body.data.results[0].description}" />
+			<log id="_log5"
+				message="Thumbnail : ${body.data.results[0].thumbnail.path}" />
+			<log id="_log6"
+				message="Comics available : ${body.data.results[0].comics.available}&#x9;" />
+		</route>
+
+	</camelContext>
 </beans>
