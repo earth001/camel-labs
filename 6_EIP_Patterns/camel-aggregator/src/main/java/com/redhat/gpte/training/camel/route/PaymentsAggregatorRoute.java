@@ -1,34 +1,43 @@
 package com.redhat.gpte.training.camel.route;
 
-import com.redhat.gpte.training.camel.BodyAppenderAggregator;
 import org.apache.camel.Endpoint;
 import org.apache.camel.EndpointInject;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.builder.xml.Namespaces;
 
+import com.redhat.gpte.training.camel.BodyAppenderAggregator;
+
 /**
- * This class defines a Camel Route that takes all files from a given directory
- * reads out their XML payments and splits them into single payments. Then it
- * will aggregate the individual payments into a new file ordered by the 
- * receiver of the payment within the given timeout period. 
+ * This class defines a Camel Route that takes all files from a given directory reads out their XML
+ * payments and splits them into single payments. Then it will aggregate the individual payments
+ * into a new file ordered by the receiver of the payment within the given timeout period.
  */
 public class PaymentsAggregatorRoute extends RouteBuilder {
 
-    @EndpointInject(ref = "sourceEndpoint")
-    private Endpoint sourceUri;
+  @EndpointInject(ref = "sourceEndpoint")
+  private Endpoint sourceUri;
 
-    @EndpointInject(ref = "destinationEndpoint")
-    private Endpoint destinationUri;
+  @EndpointInject(ref = "destinationEndpoint")
+  private Endpoint destinationUri;
 
-    private int aggregateTimeoutPeriodInSeconds = 5;
+  private int aggregateTimeoutPeriodInSeconds = 5;
 
-    @Override
-	public void configure() throws Exception {
+  @Override
+  public void configure() throws Exception {
 
-        // Define the namespace for the Payment XML
-        Namespaces ns = new Namespaces("p", "http://training.gpte.redhat.com/payment")
-                .add("xsd", "http://www.w3.org/2001/XMLSchema");
+    // Define the namespace for the Payment XML
+    Namespaces ns = new Namespaces("p", "http://training.gpte.redhat.com/payment").add("xsd",
+        "http://www.w3.org/2001/XMLSchema");
 
-        from(sourceUri).to("ADD_SPLITTER_AND_AGGREGATOR").to(destinationUri);
-    }
+    // @formatter:off
+    from(sourceUri).split().xpath("/p:Payments/p:Payment", ns)
+      .convertBodyTo(String.class)
+      .aggregate(new BodyAppenderAggregator()) // What should be aggregated
+        .xpath("/p:Payment/p:to", String.class, ns) // How the aggregator should aggregate
+        .completionTimeout(aggregateTimeoutPeriodInSeconds * 1000) // when it should stop
+      .log(
+          "\nGot aggregated payments with this content: \n${body}\n\nwhich is now being sent to the destination endpoint\n")
+      .to(destinationUri);
+    // @formatter:off
+  }
 }
