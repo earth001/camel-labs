@@ -1,17 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xsi:schemaLocation="
-       http://www.springframework.org/schema/beans
-  		   http://www.springframework.org/schema/beans/spring-beans.xsd
-  		 http://camel.apache.org/schema/spring
-		     http://camel.apache.org/schema/spring/camel-spring.xsd">
-
-    <camelContext trace="false" xmlns="http://camel.apache.org/schema/spring">
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="        http://www.springframework.org/schema/beans        http://www.springframework.org/schema/beans/spring-beans.xsd      http://camel.apache.org/schema/spring        http://camel.apache.org/schema/spring/camel-spring.xsd">
+    <camelContext id="camelContext-53f76d74-38be-4869-bbf2-eb094500cc07"
+        trace="false" xmlns="http://camel.apache.org/schema/spring">
         <route id="fetch-records">
+            <from id="_from1" uri="sql:select * from projects order by id?dataSource=#h2-datasource&amp;consumer.delay=5000"/>
+            <split id="_split1">
+                <simple>body</simple>
+                <log id="_log1" message=">> ID : ${body[ID]}, PROJECT : ${body[PROJECT]}, LICENSE : ${body[LICENSE]}"/>
+            </split>
         </route>
-
         <route id="insert-records">
+            <from id="_from2" uri="file://src/main/data?noop=true"/>
+            <convertBodyTo id="_convertBodyTo1" type="String"/>
+            <split id="_split2">
+                <tokenize token="\n"/>
+                <log id="_log2" message=">> Record : ${body}"/>
+                <to id="_to1" uri="sql:insert into projects (id, project, license) values (#, #, #)?separator=;&amp;dataSource=#h2-datasource"/>
+            </split>
         </route>
     </camelContext>
 </beans>
