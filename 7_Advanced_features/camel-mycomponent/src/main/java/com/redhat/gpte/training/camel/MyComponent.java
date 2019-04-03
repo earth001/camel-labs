@@ -10,7 +10,10 @@ import org.apache.camel.impl.DefaultComponent;
  */
 public class MyComponent extends DefaultComponent {
 
-    protected Endpoint createEndpoint(String uri, String remaining, Map<String, Object> parameters) throws Exception {
-        return new MyComponentEndpoint();
-    }
+  protected Endpoint createEndpoint(String uri, String remaining, Map<String, Object> parameters)
+      throws Exception {
+    Endpoint endpoint = new MyComponentEndpoint(uri, this);
+    setProperties(endpoint, parameters);
+    return endpoint;
+  }
 }

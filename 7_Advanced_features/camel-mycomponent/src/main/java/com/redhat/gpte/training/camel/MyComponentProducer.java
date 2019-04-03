@@ -10,21 +10,25 @@ import org.slf4j.LoggerFactory;
  */
 public class MyComponentProducer extends DefaultProducer {
 
-    private static final transient Logger LOG = LoggerFactory.getLogger(MyComponentProducer.class);
+  private static final transient Logger LOG = LoggerFactory.getLogger(MyComponentProducer.class);
 
-    private MyComponentEndpoint endpoint;
+  private MyComponentEndpoint endpoint;
 
-    public MyComponentProducer(MyComponentEndpoint endpoint) {
-        super(endpoint);
-        this.endpoint = endpoint;
-    }
+  public MyComponentProducer(MyComponentEndpoint endpoint) {
+    super(endpoint);
+    this.endpoint = endpoint;
+  }
 
-    @Override
-    public void process(Exchange exchange) throws Exception {
-     /*
-      Enrich the exchange with the header ("MyHeader = foo")
-      and append to the body the message " What a crazy exercise !"
+  @Override
+  public void process(Exchange exchange) throws Exception {
+    /*
+     * Enrich the exchange with the header ("MyHeader = foo") and append to the body the message
+     * " What a crazy exercise !"
      */
-    }
+    LOG.info(">> Body :" + exchange.getIn().getBody());
+    exchange.getIn().setHeader("MyHeader", "foo");
+    String body = (String) exchange.getIn().getBody();
+    exchange.getIn().setBody(body + " What a crazy exercise !");
+  }
 
 }
